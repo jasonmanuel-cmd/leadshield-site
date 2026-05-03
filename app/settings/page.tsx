@@ -10,19 +10,29 @@ export default function SettingsPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [email, setEmail] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [copied, setCopied] = useState<string | null>(null)
-
-  const CRM_URL = 'https://leadshield-crm.vercel.app'
-  const SYNC_ENDPOINT = `${CRM_URL}/api/sync`
+  const [email, setEmail]         = useState<string | null>(null)
+  const [userId, setUserId]       = useState<string | null>(null)
+  const [syncUrl, setSyncUrl]     = useState<string>('https://leadshield.live/api/sync')
+  const [syncToken, setSyncToken] = useState<string>('')
+  const [loading, setLoading]     = useState(true)
+  const [copied, setCopied]       = useState<string | null>(null)
 
   const fetchSession = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { router.push('/signon'); return }
     setEmail(session.user.email ?? null)
     setUserId(session.user.id)
+
+    // Fetch sync credentials securely — token is served server-side only
+    try {
+      const res = await fetch('/api/sync-credentials')
+      if (res.ok) {
+        const creds = await res.json()
+        setSyncUrl(creds.syncUrl)
+        setSyncToken(creds.syncToken)
+      }
+    } catch { /* use defaults */ }
+
     setLoading(false)
   }, [router, supabase])
 
@@ -81,18 +91,18 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <CopyField
               label="CRM Sync URL"
-              value={SYNC_ENDPOINT}
+              value={syncUrl}
               copiedKey="url"
               activeCopied={copied}
-              onCopy={() => copy(SYNC_ENDPOINT, 'url')}
+              onCopy={() => copy(syncUrl, 'url')}
               note="Paste into the Android app: Settings → Cloud Sync → Sync URL"
             />
             <CopyField
-              label="Your User ID (Sync Token)"
-              value={userId ?? ''}
-              copiedKey="uid"
+              label="Sync Token"
+              value={syncToken || 'Loading...'}
+              copiedKey="token"
               activeCopied={copied}
-              onCopy={() => copy(userId ?? '', 'uid')}
+              onCopy={() => copy(syncToken, 'token')}
               note="Paste into the Android app: Settings → Cloud Sync → Sync Token"
             />
           </div>
