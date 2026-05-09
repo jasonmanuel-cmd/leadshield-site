@@ -9,14 +9,16 @@ const NOTIFY_EMAILS = [
   "frankh@coaibakersfield.com",
 ];
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export async function POST(req: NextRequest) {
   try {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: "Signup service is not configured on this server." },
+        { status: 500 }
+      );
+    }
+
     const body = await req.json();
     const { name, email, trade, phone, message } = body;
 
@@ -145,4 +147,15 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    return null;
+  }
+
+  return createClient(supabaseUrl, supabaseKey);
 }
