@@ -155,6 +155,9 @@ export default function PrivacyPolicy() {
               </a>{" "}
               with &quot;Data Deletion Request&quot; — processed within 30 days
             </li>
+            <li>
+              Prefer a form? Use the <a href="/delete-account" className="text-purple-400 underline">account deletion request form</a>.
+            </li>
           </ul>
         </Section>
 
