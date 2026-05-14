@@ -28,10 +28,17 @@ type SyncPayload = {
 
 const LEAD_STATUSES = new Set<Lead['status']>(['new', 'called_back', 'quoted', 'booked', 'lost'])
 const MESSAGE_ROLES = new Set<ConversationMessage['role']>(['assistant', 'caller'])
+const OPERATOR_TIER_ID = 2
+const TIER_IDS: Record<string, number> = {
+  'pro': 1,
+  'operator': 2,
+  'voice': 4,
+  'team': 5,
+  'master': 3,
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-const syncToken = process.env.LEADSHIELD_SYNC_TOKEN
 
 const supabase = supabaseUrl && serviceRoleKey
   ? createClient(supabaseUrl, serviceRoleKey, {
@@ -43,16 +50,23 @@ const supabase = supabaseUrl && serviceRoleKey
   : null
 
 export async function POST(request: NextRequest) {
-  if (!supabase || !syncToken) {
+  if (!supabase) {
     return NextResponse.json(
       { error: 'Sync service is not configured on this server.' },
       { status: 500 }
     )
   }
 
+  // Extract and validate the sync token from the Bearer header
   const providedToken = getSyncToken(request)
-  if (!providedToken || providedToken !== syncToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!providedToken) {
+    return NextResponse.json({ error: 'Missing Bearer token' }, { status: 401 })
+  }
+
+  // Look up the token in customer_sync_tokens table
+  const tokenValidation = await validateSyncToken(providedToken)
+  if (!tokenValidation.valid) {
+    return NextResponse.json({ error: 'Invalid or expired sync token' }, { status: 401 })
   }
 
   let payload: SyncPayload
@@ -118,6 +132,58 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, summary })
+}
+
+async function validateSyncToken(token: string): Promise<{
+  valid: boolean
+  userId?: string
+  tier?: string
+}> {
+  if (!supabase) {
+    return { valid: false }
+  }
+
+  const { data, error } = await supabase
+    .from('customer_sync_tokens')
+    .select('user_id, tier, is_active, expires_at')
+    .eq('sync_token', token)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  if (error || !data) {
+    return { valid: false }
+  }
+
+  // Check if token has expired
+  if (data.expires_at) {
+    const expiresAt = new Date(data.expires_at)
+    if (expiresAt < new Date()) {
+      return { valid: false }
+    }
+  }
+
+  // Check subscription tier (must be OPERATOR or above)
+  const tierId = TIER_IDS[data.tier] || 0
+  if (tierId < OPERATOR_TIER_ID) {
+    return { valid: false }
+  }
+
+  // Update last_used_at timestamp
+  try {
+    await supabase
+      .from('customer_sync_tokens')
+      .update({ last_used_at: new Date().toISOString() })
+      .eq('sync_token', token)
+  } catch (e) {
+    // Log but don't fail if we can't update last_used_at
+    console.error('Failed to update last_used_at:', e)
+  }
+
+  return {
+    valid: true,
+    userId: data.user_id,
+    tier: data.tier,
+  }
 }
 
 function getSyncToken(request: NextRequest): string | null {
