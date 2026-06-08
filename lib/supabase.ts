@@ -46,3 +46,41 @@ export type CallEvent = {
   ai_handled: boolean | null
   occurred_at: string
 }
+
+// ---- Multi-Tenant CRM Types ----
+
+export type Client = {
+  id: string
+  business_name: string
+  owner_name: string | null
+  email: string
+  created_at: string
+  status: 'active' | 'suspended' | 'trialing'
+}
+
+export type TelephonyConfig = {
+  id: string
+  client_id: string
+  provisioned_phone_number: string
+  forwarding_phone_number: string
+  carrier_sid: string | null
+  is_active: boolean
+  updated_at: string
+}
+
+export type TextTemplate = {
+  id: string
+  client_id: string
+  trigger_event: 'no-answer' | 'busy' | 'failed'
+  sms_body: string
+  updated_at: string
+}
+
+export type LeadLog = {
+  id: string
+  client_id: string
+  customer_phone: string
+  call_status: 'no-answer' | 'busy'
+  sms_sent_status: 'pending' | 'sent' | 'failed' | 'dispatched'
+  timestamp: string
+}
