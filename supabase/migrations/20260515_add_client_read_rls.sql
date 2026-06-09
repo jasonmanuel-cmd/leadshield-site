@@ -3,12 +3,22 @@
 -- their own telephony config, templates, and profile data
 -- ============================================================
 
--- Clients read own telephony config (for dashboard display)
-CREATE POLICY IF NOT EXISTS "Clients read own telephony config"
-    ON public.telephony_config FOR SELECT
-    USING (auth.uid() = client_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Clients read own telephony config'
+  ) THEN
+    CREATE POLICY "Clients read own telephony config"
+      ON public.telephony_config FOR SELECT
+      USING (auth.uid() = client_id);
+  END IF;
 
--- Clients read own text templates (for dashboard display)
-CREATE POLICY IF NOT EXISTS "Clients read own templates"
-    ON public.text_templates FOR SELECT
-    USING (auth.uid() = client_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE policyname = 'Clients read own templates'
+  ) THEN
+    CREATE POLICY "Clients read own templates"
+      ON public.text_templates FOR SELECT
+      USING (auth.uid() = client_id);
+  END IF;
+END;
+$$;
