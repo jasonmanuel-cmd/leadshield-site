@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import SplashScreen from '@/components/SplashScreen'
-import { Analytics } from '@vercel/analytics/react'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
   title: 'LeadShield — AI Auto-Reply for Contractors | Never Miss a Lead Again',
