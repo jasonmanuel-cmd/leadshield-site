@@ -11,37 +11,42 @@ function getSupabase() {
   })
 }
 
+function parsePayload(body: any) {
+  // Telnyx format: { data: { event_type, payload: { from, to, hangup_cause, ... } } }
+  if (body?.data?.event_type && body?.data?.payload) {
+    const p = body.data.payload
+    const isMissed = body.data.event_type === 'call.hangup' && p.hangup_cause === 'NO_ANSWER'
+    return { from: p.from, to: p.to, isMissed, source: 'telnyx' as const }
+  }
+  // Twilio format: { CallStatus, From, To }
+  const callStatus = (body.CallStatus || '').toLowerCase()
+  const isMissed = callStatus !== 'completed' && callStatus !== 'answered'
+  return { from: body.From, to: body.To, isMissed, source: 'twilio' as const }
+}
+
 export async function POST(req: NextRequest) {
   const supabase = getSupabase()
   if (!supabase) {
     return NextResponse.json({ error: 'Webhook service not configured.' }, { status: 500 })
   }
 
-  let payload: Record<string, string>
+  let raw: any
   const contentType = req.headers.get('content-type') ?? ''
-
   if (contentType.includes('application/x-www-form-urlencoded')) {
     const text = await req.text()
     const params = new URLSearchParams(text)
-    payload = Object.fromEntries(params.entries())
+    raw = Object.fromEntries(params.entries())
   } else {
-    payload = await req.json()
+    raw = await req.json()
   }
 
-  const callStatus = payload.CallStatus       // no-answer, busy, completed, answered
-  const trackingNumber = payload.To            // number the customer dialed
-  const customerNumber = payload.From          // the customer's number
+  const { from: customerNumber, to: trackingNumber, isMissed, source } = parsePayload(raw)
 
-  // Filter out answered/completed calls immediately — only act on missed
-  if (callStatus === 'completed' || callStatus === 'answered') {
-    return new NextResponse('<Response></Response>', {
-      status: 200,
-      headers: { 'Content-Type': 'text/xml' },
-    })
+  if (!isMissed || !customerNumber || !trackingNumber) {
+    return new NextResponse('OK', { status: 200 })
   }
 
   try {
-    // Step 1: Look up client by their provisioned tracking number
     const { data: config, error: configError } = await supabase
       .from('telephony_config')
       .select('client_id')
@@ -55,37 +60,59 @@ export async function POST(req: NextRequest) {
 
     const clientId = config.client_id
 
-    // Step 2: Fetch the client's custom auto-reply template
-    const { data: template, error: templateError } = await supabase
+    const { data: template } = await supabase
       .from('text_templates')
       .select('sms_body')
       .eq('client_id', clientId)
       .eq('trigger_event', 'no-answer')
       .single()
 
-    const smsContent = templateError || !template
+    const smsContent = !template
       ? "Hey! Sorry we missed your call. We'll get back to you shortly."
       : template.sms_body
 
-    // Step 3: Log the lead in the CRM
-    await supabase.from('lead_logs').insert({
-      client_id: clientId,
-      customer_phone: customerNumber,
-      call_status: callStatus,
-      sms_sent_status: 'dispatched',
-      status: 'new',
-      timestamp: new Date().toISOString(),
-    })
+    // Send SMS via Telnyx API (if configured)
+    const telnyxKey = process.env.TELNYX_API_KEY
+    if (telnyxKey) {
+      const smsRes = await fetch('https://api.telnyx.com/v2/messages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${telnyxKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: trackingNumber,
+          to: customerNumber,
+          text: smsContent,
+        }),
+      })
+      const smsResult = await smsRes.json()
+      await supabase.from('lead_logs').insert({
+        client_id: clientId,
+        customer_phone: customerNumber,
+        call_status: 'no-answer',
+        sms_sent_status: smsRes.ok ? 'sent' : 'failed',
+        status: 'new',
+        timestamp: new Date().toISOString(),
+      })
+      if (!smsRes.ok) {
+        console.error('Telnyx SMS failed:', JSON.stringify(smsResult))
+      }
+    } else {
+      // No Telnyx key — log the lead but don't send SMS
+      await supabase.from('lead_logs').insert({
+        client_id: clientId,
+        customer_phone: customerNumber,
+        call_status: 'no-answer',
+        sms_sent_status: 'dispatched',
+        status: 'new',
+        timestamp: new Date().toISOString(),
+      })
+    }
 
-    // Step 4: Return TwiML instructing the carrier to send the SMS
-    const twiml = `<Response><Sms from="${trackingNumber}" to="${customerNumber}">${smsContent}</Sms></Response>`
-
-    return new NextResponse(twiml, {
-      status: 200,
-      headers: { 'Content-Type': 'text/xml' },
-    })
+    return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('Webhook handler error:', err)
-    return NextResponse.json({ error: 'Internal system architecture failure.' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal error.' }, { status: 500 })
   }
 }
