@@ -82,5 +82,10 @@ export type LeadLog = {
   customer_phone: string
   call_status: 'no-answer' | 'busy'
   sms_sent_status: 'pending' | 'sent' | 'failed' | 'dispatched'
+  status: 'new' | 'called_back' | 'quoted' | 'booked' | 'lost'
+  contact_name: string | null
+  notes: string | null
+  called_back_at: string | null
   timestamp: string
+  updated_at: string | null
 }

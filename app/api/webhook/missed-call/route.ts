@@ -73,6 +73,8 @@ export async function POST(req: NextRequest) {
       customer_phone: customerNumber,
       call_status: callStatus,
       sms_sent_status: 'dispatched',
+      status: 'new',
+      timestamp: new Date().toISOString(),
     })
 
     // Step 4: Return TwiML instructing the carrier to send the SMS

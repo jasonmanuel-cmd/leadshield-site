@@ -29,7 +29,14 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/dashboard')
+    // Redirect CRM clients to /crm, sync users to /dashboard
+    try {
+      const res = await fetch('/api/client/template')
+      const data = await res.json()
+      router.push(data.client ? '/crm' : '/dashboard')
+    } catch {
+      router.push('/dashboard')
+    }
     router.refresh()
   }
 
@@ -105,6 +112,11 @@ export default function LoginPage() {
                 placeholder: '••••••••',
               }}
             />
+
+            <a href="/reset-password"
+              style={{ display: 'inline-block', marginTop: '6px', fontSize: '12px', color: '#94A3B8', textDecoration: 'none' }}>
+              Forgot password?
+            </a>
 
             {error && (
               <div
