@@ -60,6 +60,42 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/admin/clients — provision a new client business
+// PATCH /api/admin/clients — update client (suspend/activate, change plan, mark payment)
+export async function PATCH(req: NextRequest) {
+  if (!checkAuth(req)) return unauthorized()
+
+  const supabase = getAdminClient()
+  if (!supabase) {
+    return NextResponse.json({ error: 'Not configured' }, { status: 500 })
+  }
+
+  let body: Record<string, unknown>
+  try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
+
+  const { id, status, plan_tier, monthly_fee, payment_status } = body as Record<string, string | undefined>
+
+  if (!id) {
+    return NextResponse.json({ error: 'Client id required' }, { status: 400 })
+  }
+
+  const updates: Record<string, unknown> = {}
+  if (status) updates.status = status
+  if (plan_tier) updates.plan_tier = plan_tier
+  if (monthly_fee) updates.monthly_fee = parseFloat(monthly_fee)
+  if (payment_status) updates.payment_status = payment_status
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
+  }
+
+  const { error } = await supabase.from('clients').update(updates).eq('id', id)
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function POST(req: NextRequest) {
   if (!checkAuth(req)) return unauthorized()
 

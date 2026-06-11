@@ -60,6 +60,59 @@ const FEATURES = [
   },
 ]
 
+const PRICING = [
+  {
+    tier: 'Single',
+    price: '39',
+    desc: 'Perfect for solo contractors and independent tradespeople.',
+    features: [
+      '1 tracking number',
+      'Full CRM pipeline',
+      'Missed-call text-back',
+      'Lead status tracking',
+      'Contact name & notes',
+      'Web-based dashboard',
+      'Email support',
+    ],
+    accent: '#00E5FF',
+    cta: 'Get Started',
+    popular: false,
+  },
+  {
+    tier: 'Pro',
+    price: '69',
+    desc: 'For growing businesses that need more flexibility.',
+    features: [
+      'Everything in Single, plus:',
+      '2+ tracking numbers',
+      'Missed-call text-back',
+      'Custom SMS templates',
+      'Pipeline overview & analytics',
+      'Priority email support',
+    ],
+    accent: '#FFD700',
+    cta: 'Get Started',
+    popular: true,
+  },
+  {
+    tier: 'Agency',
+    price: '149',
+    desc: 'For agencies and multi-business owners.',
+    features: [
+      'Everything in Pro, plus:',
+      'Up to 5 clients',
+      'Missed-call text-back per client',
+      'Consolidated admin panel',
+      'Usage analytics per client',
+      'Payment tracking dashboard',
+      'Priority support',
+    ],
+    accent: '#A855F7',
+    cta: 'Contact Admin',
+    popular: false,
+  },
+]
+
 const FAQS = [
   { q: 'What is LeadShield CRM?', a: 'LeadShield is a web-based CRM for contractors and tradespeople. It logs every missed call as a lead, tracks your pipeline through status stages, and integrates with our missed-call text-back system.' },
   { q: 'Do I need to install anything?', a: 'No. LeadShield is a cloud CRM. Access it from any device with a web browser at leadshield.live/crm.' },
@@ -241,6 +294,68 @@ export default function HomePage() {
             style={{ background: 'rgba(0,229,255,0.15)', color: '#00E5FF', border: '1px solid rgba(0,229,255,0.3)' }}>
             Learn How It Works →
           </Link>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="px-6 md:px-16 py-16 max-w-5xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#FFD700' }}>Pricing</div>
+          <h2 className="text-3xl font-bold mb-3" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
+            Choose your plan
+          </h2>
+          <p className="text-sm" style={{ color: '#A6AEC1' }}>
+            All plans include instant setup and no long-term contracts.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-3 gap-5">
+          {PRICING.map((p) => {
+            const isPro = p.popular
+            return (
+              <div key={p.tier} style={{
+                borderRadius: '24px', padding: '32px', position: 'relative',
+                background: isPro ? 'linear-gradient(135deg, rgba(255,215,0,0.08), rgba(168,85,247,0.06))' : 'rgba(255,255,255,0.03)',
+                border: isPro ? '1px solid rgba(255,215,0,0.25)' : '1px solid rgba(255,255,255,0.07)',
+                display: 'flex', flexDirection: 'column',
+              }}>
+                {isPro && (
+                  <div style={{
+                    position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
+                    background: '#FFD700', color: '#050814', fontSize: '11px', fontWeight: 800,
+                    padding: '4px 16px', borderRadius: '20px', textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}>
+                    Most Popular
+                  </div>
+                )}
+                <div style={{ fontSize: '13px', fontWeight: 700, color: p.accent, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
+                  {p.tier}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ fontSize: '36px', fontWeight: 800, color: '#F5F7FA' }}>${p.price}</span>
+                  <span style={{ color: '#A6AEC1', fontSize: '14px' }}>/mo</span>
+                </div>
+                <p style={{ color: '#A6AEC1', fontSize: '13px', margin: '0 0 20px', lineHeight: 1.5 }}>{p.desc}</p>
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+                  {p.features.map((f, i) => (
+                    <li key={i} style={{ fontSize: '13px', color: '#E8EAF0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#00FF88' }}>✓</span> {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href="/signon"
+                  style={{
+                    display: 'block', textAlign: 'center', padding: '12px', borderRadius: '14px',
+                    fontWeight: 700, fontSize: '14px', textDecoration: 'none',
+                    background: isPro ? 'linear-gradient(135deg, #FFD700, #A855F7)' : 'rgba(255,255,255,0.06)',
+                    color: isPro ? '#050814' : '#F5F7FA',
+                    border: isPro ? 'none' : '1px solid rgba(255,255,255,0.07)',
+                  }}>
+                  {p.cta}
+                </a>
+              </div>
+            )
+          })}
         </div>
       </section>
 

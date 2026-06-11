@@ -30,6 +30,16 @@ export default function LoginPage() {
     }
 
     try {
+      // Check if admin
+      const adminRes = await fetch('/api/admin/me')
+      const adminData = await adminRes.json()
+      if (adminData.role === 'admin') {
+        router.push('/admin')
+        router.refresh()
+        return
+      }
+
+      // Regular client — check if they have a client record
       const res = await fetch('/api/client/template')
       const data = await res.json()
       router.push(data.client ? '/crm' : '/')
