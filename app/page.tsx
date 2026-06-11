@@ -305,7 +305,7 @@ export default function HomePage() {
             Choose your plan
           </h2>
           <p className="text-sm" style={{ color: '#A6AEC1' }}>
-            All plans include instant setup and no long-term contracts.
+            $350 one-time setup. No long-term contracts.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-5">
@@ -331,9 +331,12 @@ export default function HomePage() {
                 <div style={{ fontSize: '13px', fontWeight: 700, color: p.accent, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '4px' }}>
                   {p.tier}
                 </div>
-                <div style={{ marginBottom: '8px' }}>
+                <div style={{ marginBottom: '4px' }}>
                   <span style={{ fontSize: '36px', fontWeight: 800, color: '#F5F7FA' }}>${p.price}</span>
                   <span style={{ color: '#A6AEC1', fontSize: '14px' }}>/mo</span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#A6AEC1', marginBottom: '8px' }}>
+                  + <span style={{ color: '#00E5FF', fontWeight: 600 }}>$350</span> one-time setup
                 </div>
                 <p style={{ color: '#A6AEC1', fontSize: '13px', margin: '0 0 20px', lineHeight: 1.5 }}>{p.desc}</p>
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
