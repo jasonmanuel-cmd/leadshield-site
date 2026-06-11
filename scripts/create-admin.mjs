@@ -32,9 +32,14 @@ const found = existing?.users.find(u => u.email === email)
 
 if (found) {
   console.log('User already exists:', found.id)
+
+  // Reset password to ensure it matches
+  const { error: pwErr } = await supabase.auth.admin.updateUserById(found.id, { password })
+  if (pwErr) { console.error('Password reset error:', pwErr.message) }
+  else { console.log('Password reset to configured value') }
+
   const { data: client, error: cErr } = await supabase.from('clients').select('id, role').eq('id', found.id).single()
   if (cErr && cErr.code === 'PGRST116') {
-    // No client record yet
     const { error: insertErr } = await supabase.from('clients').insert({
       id: found.id,
       email,
