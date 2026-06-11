@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { Analytics } from '@vercel/analytics/react'
+import SplashScreen from '@/components/SplashScreen'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
   title: 'LeadShield — Cloud CRM for Contractors',
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body style={{ background: '#0a0e1a', minHeight: '100vh' }}>
+        <SplashScreen />
         {children}
         <Analytics />
       </body>
