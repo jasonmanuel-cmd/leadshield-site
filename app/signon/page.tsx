@@ -29,13 +29,12 @@ export default function LoginPage() {
       return
     }
 
-    // Redirect CRM clients to /crm, sync users to /dashboard
     try {
       const res = await fetch('/api/client/template')
       const data = await res.json()
-      router.push(data.client ? '/crm' : '/dashboard')
+      router.push(data.client ? '/crm' : '/')
     } catch {
-      router.push('/dashboard')
+      router.push('/')
     }
     router.refresh()
   }
@@ -57,24 +56,18 @@ export default function LoginPage() {
           <div className="relative max-w-2xl">
             <div className="flex items-center gap-2 text-xs uppercase tracking-[0.24em]" style={{ color: '#8892A4' }}>
               <span className="inline-flex h-2 w-2 rounded-full bg-[#00E5FF] shadow-[0_0_18px_rgba(0,229,255,0.7)]" />
-              LeadShield Command Center
+              LeadShield CRM
             </div>
 
             <h1 className="font-display mt-5 text-4xl md:text-6xl font-bold leading-tight" style={{ color: '#F5F7FA' }}>
-              Missed calls become
-              <span style={{ color: '#00E5FF' }}> live revenue ops</span>.
+              Sign in to your
+              <span style={{ color: '#00E5FF' }}> CRM dashboard</span>.
             </h1>
 
             <p className="mt-5 max-w-xl text-sm md:text-base leading-7" style={{ color: '#A6AEC1' }}>
-              Sign in to the top-level command surface for your LeadShield data. Watch customer-phone sync,
-              urgent leads, and AI activity update in real time across the pipeline.
+              View your leads, manage your pipeline, update statuses, and configure your
+              missed-call auto-reply settings. All from one web dashboard.
             </p>
-
-            <div className="mt-7 grid gap-3 sm:grid-cols-3">
-              <StatChip label="Live sync" value="Online" accent="#00C853" />
-              <StatChip label="Response mode" value="AI + manual" accent="#00E5FF" />
-              <StatChip label="Focus" value="Urgent jobs" accent="#FFD700" />
-            </div>
           </div>
         </div>
 
@@ -84,7 +77,7 @@ export default function LoginPage() {
               Sign in
             </h2>
             <p className="text-sm mt-2" style={{ color: '#8892A4' }}>
-              Use your operator account to open the synced dashboard.
+              Sign in to access your CRM and manage your leads.
             </p>
           </div>
 
@@ -151,8 +144,8 @@ export default function LoginPage() {
               Access note
             </p>
             <p className="text-sm" style={{ color: '#A6AEC1' }}>
-              Your account is created through the LeadShield Android app. Web access is included
-              with your Operator subscription.
+              Your CRM account is managed by your admin. Sign in to view leads, manage your pipeline,
+              and configure your missed-call auto-reply settings.
             </p>
           </div>
 
@@ -160,18 +153,18 @@ export default function LoginPage() {
             style={{ background: 'rgba(0,229,255,0.06)', border: '1px solid rgba(0,229,255,0.18)' }}>
             <div>
               <p className="text-xs font-semibold mb-0.5" style={{ color: '#00E5FF' }}>
-                Don&apos;t have the app yet?
+                Not a CRM client yet?
               </p>
               <p className="text-xs" style={{ color: '#8892A4' }}>
-                Download LeadShield free on Android.
+                Contact your admin to get set up with a tracking number and CRM access.
               </p>
             </div>
             <a
-              href="/beta"
+              href="/"
               className="shrink-0 text-xs font-bold px-3 py-2 rounded-xl transition-all"
               style={{ background: 'rgba(0,229,255,0.15)', color: '#00E5FF', border: '1px solid rgba(0,229,255,0.3)' }}
             >
-              Get the App →
+              Learn More →
             </a>
           </div>
         </div>

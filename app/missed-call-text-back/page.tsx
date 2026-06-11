@@ -1,77 +1,32 @@
 import Link from 'next/link'
 
-const FEATURES = [
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-        <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-      </svg>
-    ),
-    title: 'Lead Pipeline Board',
-    desc: 'Every lead gets a card with status tracking. Move through New → Called Back → Quoted → Booked → Lost. See your entire pipeline at a glance.'
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
-      </svg>
-    ),
-    title: 'Lead Notes & Contact Management',
-    desc: 'Add contact names, notes, and callback timestamps to every lead. Keep all the context you need to close the job.'
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00FF88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-      </svg>
-    ),
-    title: 'Call Tracking Integration',
-    desc: 'Every call to your tracking number is logged automatically. Know who called, when, and what status you left them at.'
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
-    title: 'Multi-Client Management',
-    desc: 'Run multiple businesses? Each client gets their own isolated CRM dashboard, tracking number, and settings. Full separation of data.'
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-    ),
-    title: 'Secure & Private',
-    desc: 'Row-level security keeps each clients data completely isolated. Encrypted database. TLS 1.3 in transit. No shared data between businesses.'
-  },
-  {
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-      </svg>
-    ),
-    title: 'Instant Lead Capture',
-    desc: 'The moment a lead comes in, its on your dashboard. No delays, no manual entry. Just a clean pipeline waiting for your follow-up.'
-  },
+const STEPS = [
+  { n: '01', color: '#00E5FF',
+    title: 'Customer calls your tracking number',
+    body: "You get a dedicated phone number that forwards calls straight to your cell. When you're on a job and can't answer, the system detects the missed call instantly — no hardware, no software, nothing to install." },
+  { n: '02', color: '#0070FF',
+    title: 'Auto-reply SMS fires in seconds',
+    body: 'Within moments of the missed call, your customer receives a professional text message from your number. You write the message — "Hey, this is Mike from Mike\'s Plumbing — I\'m on a job right now but I got your call. What can I help you with?" — and the system sends it automatically.' },
+  { n: '03', color: '#FFD700',
+    title: 'Lead logged in your CRM',
+    body: 'Every missed call becomes a lead card in your LeadShield dashboard. See who called, when, the message that was sent, and start tracking the lead through your pipeline.' },
+  { n: '04', color: '#00E5FF',
+    title: 'You call them back and close the job',
+    body: 'When you\'re free, check your pipeline, call the lead back, and move them through the stages. The whole cycle — from missed call to booked job — lives in one place.' },
 ]
 
 const FAQS = [
-  { q: 'What is LeadShield CRM?', a: 'LeadShield is a web-based CRM for contractors and tradespeople. It logs every missed call as a lead, tracks your pipeline through status stages, and integrates with our missed-call text-back system.' },
-  { q: 'Do I need to install anything?', a: 'No. LeadShield is a cloud CRM. Access it from any device with a web browser at leadshield.live/crm.' },
-  { q: 'How do leads get into the CRM?', a: 'When a call comes in to your tracking number and you don\'t answer, the system logs it as a lead automatically. You can also manually add leads from the dashboard.' },
-  { q: 'Can I track my pipeline?', a: 'Yes. Move leads through New → Called Back → Quoted → Booked → Lost. Add notes, contact names, and callback timestamps to every lead.' },
-  { q: 'Is my data secure?', a: 'Yes. Each clients data is isolated with row-level security. The database is encrypted, and all connections use TLS 1.3.' },
-  { q: 'Can I manage multiple businesses?', a: 'Yes. Each client gets their own tracking number, SMS template, settings, and isolated CRM dashboard. Perfect for agencies running multiple contractors.' },
-  { q: 'How do I sign in?', a: 'Go to leadshield.live/signon and use your credentials. If you don\'t have an account, contact your admin.' },
-  { q: 'What is the missed call text-back system?', a: 'It\'s a feature that automatically sends a custom SMS to anyone who calls your tracking number and you don\'t answer. Learn more on our Missed Call Text-Back page.' },
+  { q: 'Do I need to install anything?', a: 'No. This is a cloud service. You get a tracking number and a CRM dashboard. No apps, no hardware, no software updates.' },
+  { q: 'Do I need a new phone number?', a: 'You get a dedicated tracking number that forwards to your existing phone. Your customers call the tracking number. Your personal number stays private.' },
+  { q: 'How fast is the auto-reply?', a: 'The SMS fires within seconds of the missed call being detected. Your customer gets a response before they have even put the phone down.' },
+  { q: 'Can I customize the message?', a: 'Yes. Each client sets their own SMS template through the CRM settings. Change it anytime for different seasons, promotions, or services.' },
+  { q: 'Do my customers know its automated?', a: 'No. The SMS comes from your tracking number and contains the message you wrote. It looks exactly like a personal text from your business.' },
+  { q: 'How do I see who called?', a: 'Every missed call is logged immediately in your CRM dashboard at leadshield.live/crm. See the caller number, timestamp, and SMS status.' },
+  { q: 'Can I use this for multiple businesses?', a: 'Yes. Each client gets their own tracking number, isolated CRM dashboard, and custom SMS template. Manage them all from one admin panel.' },
+  { q: 'How is this different from a regular forwarding service?', a: 'Regular forwarding just sends the call to voicemail. LeadShield detects the missed call, sends an instant SMS, AND logs it as a lead in your CRM — all automatically.' },
 ]
 
-export default function HomePage() {
+export default function MissedCallPage() {
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: '#050814', color: '#E8EAF0' }}>
 
@@ -87,9 +42,9 @@ export default function HomePage() {
         </div>
 
         <div className="hidden md:flex items-center gap-6 text-sm font-medium" style={{ color: '#8892A4' }}>
-          <a href="#features"     className="hover:text-white transition-colors">Features</a>
-          <a href="/missed-call-text-back" className="hover:text-white transition-colors">Missed Call System</a>
-          <a href="#faq"          className="hover:text-white transition-colors">FAQ</a>
+          <a href="/"                  className="hover:text-white transition-colors">CRM</a>
+          <a href="#how-it-works"      className="hover:text-white transition-colors">How It Works</a>
+          <a href="#faq"               className="hover:text-white transition-colors">FAQ</a>
         </div>
 
         <div className="flex items-center gap-3">
@@ -119,23 +74,23 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-8"
             style={{ background: 'rgba(0,229,255,0.08)', color: '#00E5FF', border: '1px solid rgba(0,229,255,0.22)' }}>
             <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-pulse" />
-            Cloud CRM for Contractors & Trades
+            Missed Call Auto-Reply System
           </div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-[1.02] mb-6 tracking-tight"
             style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-            Your Entire{' '}
+            Never Lose a{' '}
             <span className="bg-clip-text text-transparent"
               style={{ backgroundImage: 'linear-gradient(135deg,#00E5FF,#0070FF)' }}>
-              Pipeline
+              Job
             </span>
-            <br />In One Place.
+            <br />to a Missed Call.
           </h1>
 
           <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed mb-10" style={{ color: '#A6AEC1' }}>
-            LeadShield is the web-based CRM built for contractors and tradespeople.
-            Track every lead, manage your pipeline, and never lose track of a potential job —{' '}
-            <strong style={{ color: '#F5F7FA' }}>all from your browser.</strong>
+            When you are on a job and cannot answer, LeadShield sends an instant SMS to your customer
+            and logs the lead in your CRM.{' '}
+            <strong style={{ color: '#F5F7FA' }}>You close the job when you are free.</strong>
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -144,22 +99,22 @@ export default function HomePage() {
               style={{ background: 'linear-gradient(135deg,#00E5FF,#0070FF)', color: '#050814', boxShadow: '0 0 40px rgba(0,229,255,0.28)', fontFamily: 'Space Grotesk, sans-serif' }}>
               Access Your CRM →
             </Link>
-            <a href="/missed-call-text-back"
+            <Link href="/"
               className="px-10 py-4 rounded-xl font-bold text-lg transition-colors"
               style={{ border: '1px solid rgba(255,255,255,0.12)', color: '#E8EAF0', fontFamily: 'Space Grotesk, sans-serif' }}>
-              Missed Call System
-            </a>
+              CRM Dashboard
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 max-w-3xl mx-auto rounded-2xl overflow-hidden"
             style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
             {[
-              ['Real-Time', 'leads hit your dashboard the moment a call is missed'],
-              ['5 Status Stages', 'New → Called Back → Quoted → Booked → Lost'],
-              ['Multi-Client', 'isolated dashboards for every business you run'],
-              ['100% Web', 'no app, no install, no maintenance'],
+              ['62%',   'of contractor calls go unanswered'],
+              ['85%',   'of missed callers never call back'],
+              ['~$850', 'average missed plumbing job'],
+              ['~$4,500','average missed roofing job'],
             ].map(([v, l]) => (
-              <div key={v} className="py-6 px-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+              <div key={l} className="py-6 px-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="text-3xl md:text-4xl font-bold mb-1" style={{ color: '#FFD700', fontFamily: 'Space Grotesk, sans-serif' }}>{v}</div>
                 <div className="text-xs leading-snug" style={{ color: '#8892A4' }}>{l}</div>
               </div>
@@ -168,52 +123,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="px-6 md:px-16 py-20 max-w-6xl mx-auto">
-        <div className="text-center mb-14">
-          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#FFD700' }}>Features</div>
-          <h2 className="text-4xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
-            Everything you need to manage your leads
+      {/* THE COST */}
+      <section className="px-6 md:px-16 py-16 max-w-4xl mx-auto">
+        <div className="rounded-3xl p-8 md:p-12"
+          style={{ background: 'rgba(255,215,0,0.03)', border: '1px solid rgba(255,215,0,0.12)' }}>
+          <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#FFD700' }}>
+            The Real Cost of a Missed Call
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6"
+            style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
+            You are not just missing a call.<br />You are missing a job.
           </h2>
-          <p className="mt-3 max-w-xl mx-auto text-sm" style={{ color: '#8892A4' }}>
-            One dashboard. Every lead. Full pipeline visibility.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map(f => (
-            <div key={f.title}
-              className="rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/20"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <div className="mb-4">{f.icon}</div>
-              <h3 className="font-semibold text-base mb-2" style={{ color: '#F5F7FA' }}>{f.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: '#8892A4' }}>{f.desc}</p>
-            </div>
-          ))}
+          <div className="space-y-4 text-base md:text-lg leading-relaxed" style={{ color: '#A6AEC1' }}>
+            <p>
+              A contractor who misses <strong style={{ color: '#F5F7FA' }}>3 calls a week</strong> loses roughly{' '}
+              <strong style={{ color: '#F5F7FA' }}>12 leads a month</strong>. With 85% of missed callers never calling back,
+              that is{' '}
+              <strong style={{ color: '#F5F7FA', fontSize: '1.15em' }}>$8,500/month walking out the door</strong>
+              {' '}— while you are on someone else&apos;s job.
+            </p>
+            <p>
+              LeadShield catches every one of those calls — sends an instant SMS, logs the lead in your CRM,
+              and puts everything you need to close the job at your fingertips.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="px-6 md:px-16 py-20"
+      <section id="how-it-works" className="px-6 md:px-16 py-20"
         style={{ background: 'rgba(255,255,255,0.018)' }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#00E5FF' }}>How It Works</div>
-          <h2 className="text-4xl font-bold mb-12" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
-            From call to close in one dashboard
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-            {[
-              { n: '01', title: 'Lead Arrives', body: 'A missed call or new lead appears in your CRM automatically. See the phone number, timestamp, and status.' },
-              { n: '02', title: 'You Follow Up', body: 'Call them back, update the status, add notes, and save their contact name. Everything tracked in one place.' },
-              { n: '03', title: 'Close the Job', body: 'Move the lead through your pipeline to Booked. Know exactly how many jobs you won — and how many you lost.' },
-            ].map(s => (
-              <div key={s.n} className="rounded-2xl p-6"
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-14">
+            <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#00E5FF' }}>How It Works</div>
+            <h2 className="text-4xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
+              Missed call to booked job
+            </h2>
+            <p className="mt-3 max-w-lg mx-auto text-sm" style={{ color: '#8892A4' }}>
+              No hardware, no software, no app. Just a tracking number and our cloud system.
+            </p>
+          </div>
+          <div className="space-y-4">
+            {STEPS.map(step => (
+              <div key={step.n} className="flex gap-5 items-start rounded-2xl p-5 md:p-6"
                 style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm mb-4"
-                  style={{ background: '#00E5FF15', border: '2px solid #00E5FF', color: '#00E5FF', fontFamily: 'Space Grotesk, sans-serif' }}>
-                  {s.n}
+                <div className="flex-shrink-0 w-14 h-14 rounded-xl flex items-center justify-center font-bold text-sm"
+                  style={{ background: `${step.color}15`, border: `2px solid ${step.color}`, color: step.color, fontFamily: 'Space Grotesk, sans-serif' }}>
+                  {step.n}
                 </div>
-                <h3 className="font-semibold text-base mb-2" style={{ color: '#F5F7FA' }}>{s.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: '#8892A4' }}>{s.body}</p>
+                <div>
+                  <h3 className="font-semibold text-base mb-1" style={{ color: '#F5F7FA' }}>{step.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: '#8892A4' }}>{step.body}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -226,21 +187,52 @@ export default function HomePage() {
           style={{ background: 'rgba(0,229,255,0.04)', border: '1px solid rgba(0,229,255,0.15)' }}>
           <div className="flex-1">
             <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#00E5FF' }}>
-              LeadShield CRM + Missed Call System
+              LeadShield CRM
             </div>
             <h3 className="text-2xl font-bold mb-3" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
-              Add instant text-back to your pipeline
+              Every lead, tracked end to end
             </h3>
             <p className="text-sm leading-relaxed" style={{ color: '#A6AEC1' }}>
-              Pair your CRM with our missed-call auto-reply system. When you are on a job and cannot answer,
-              your customer gets an instant SMS — and the lead is already in your dashboard waiting for you.
+              The missed-call system feeds directly into your CRM. Each lead gets a card with status tracking,
+              notes, contact management, and full pipeline visibility. Sign in at{' '}
+              <strong style={{ color: '#00E5FF' }}>leadshield.live/crm</strong>.
             </p>
           </div>
-          <Link href="/missed-call-text-back"
-            className="px-8 py-3 rounded-xl font-bold text-sm text-center transition-all hover:opacity-90 flex-shrink-0"
-            style={{ background: 'rgba(0,229,255,0.15)', color: '#00E5FF', border: '1px solid rgba(0,229,255,0.3)' }}>
-            Learn How It Works →
-          </Link>
+          <div className="flex flex-col gap-3 flex-shrink-0">
+            <Link href="/signon"
+              className="px-8 py-3 rounded-xl font-bold text-sm text-center transition-all hover:opacity-90"
+              style={{ background: 'rgba(0,229,255,0.15)', color: '#00E5FF', border: '1px solid rgba(0,229,255,0.3)' }}>
+              Sign In to CRM →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="px-6 md:px-16 py-16 max-w-5xl mx-auto">
+        <div className="text-center mb-12">
+          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#FFD700' }}>Features</div>
+          <h2 className="text-3xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
+            What the system does for you
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { icon: '📞', title: 'Instant Detection', desc: 'The system detects a missed call within seconds of it happening. No delays, no polling, no false triggers.' },
+            { icon: '💬', title: 'Custom Auto-Reply', desc: 'Write your own SMS template per client. The message goes out from your tracking number automatically.' },
+            { icon: '📋', title: 'Lead Logged Automatically', desc: 'Every missed call creates a lead card in your CRM. Caller number, timestamp, and SMS status — all captured.' },
+            { icon: '📱', title: 'Works With Any Phone', desc: 'Your tracking number forwards to any phone number. Smartphone or flip phone, it makes no difference.' },
+            { icon: '🏢', title: 'Multi-Client Support', desc: 'Each business gets their own tracking number, message template, and isolated CRM. Manage them all from one admin.' },
+            { icon: '🔌', title: 'No Integration Needed', desc: 'Works out of the box. Provision a number, set your message, and the system is live. No APIs to configure.' },
+          ].map(f => (
+            <div key={f.title}
+              className="rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/20"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+              <div className="text-3xl mb-4">{f.icon}</div>
+              <h3 className="font-semibold text-base mb-2" style={{ color: '#F5F7FA' }}>{f.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: '#8892A4' }}>{f.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -249,7 +241,7 @@ export default function HomePage() {
         <div className="text-center mb-12">
           <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#FFD700' }}>FAQ</div>
           <h2 className="text-3xl font-bold" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
-            Questions? We got answers.
+            Questions about the system?
           </h2>
         </div>
         <div className="space-y-3">
@@ -279,10 +271,10 @@ export default function HomePage() {
           <div className="text-6xl mb-6">🛡️</div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 leading-tight"
             style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
-            Ready to Take Control of Your Pipeline?
+            Ready to Stop Missing Jobs?
           </h2>
           <p className="text-lg mb-8 max-w-xl mx-auto leading-relaxed" style={{ color: '#A6AEC1' }}>
-            Every lead in one place. Every status tracked. Every job accounted for.
+            Every missed call is a job you did not have to lose. Get your CRM access and start protecting your revenue.
           </p>
           <Link href="/signon"
             className="inline-block px-12 py-5 rounded-xl font-bold text-xl text-[#050814] transition-all hover:opacity-95 hover:scale-105"
@@ -324,7 +316,7 @@ export default function HomePage() {
               <div className="space-y-2.5">
                 {[
                   { href: '/missed-call-text-back', label: 'Missed Call System' },
-                  { href: '#features',               label: 'Features' },
+                  { href: '/',                       label: 'CRM' },
                   { href: '#faq',                    label: 'FAQ' },
                   { href: '/privacy',                label: 'Privacy Policy' },
                 ].map(({ href, label }) => (

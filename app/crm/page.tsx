@@ -103,8 +103,6 @@ export default function CrmDashboard() {
         <div style={{ ...PANEL, maxWidth: '420px', textAlign: 'center' }}>
           <p style={{ color: COLORS.muted, fontSize: '14px', margin: 0 }}>
             This dashboard is for LeadShield CRM clients.
-            <br />
-            <a href="/dashboard" style={{ color: COLORS.cyan }}>Go to the sync dashboard →</a>
           </p>
         </div>
       </div>
