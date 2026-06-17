@@ -4,15 +4,25 @@ export async function POST(req: NextRequest) {
   const telnyxKey = process.env.TELNYX_API_KEY
   const demoFromNumber = "+16615935773" // Our live tracking number
 
+  console.log('--- Demo API Request ---')
+  console.log('Telnyx Key Present:', !!telnyxKey)
+  if (telnyxKey) {
+    console.log('Telnyx Key Starts With:', telnyxKey.substring(0, 7) + '...')
+  }
+
   if (!telnyxKey) {
     return NextResponse.json({ error: 'SMS service not configured.' }, { status: 500 })
   }
 
   try {
-    const { phone } = await req.json()
+    const body = await req.json()
+    const { phone } = body
+    console.log('Request body:', JSON.stringify(body))
+
     if (!phone) {
       return NextResponse.json({ error: 'Phone number is required.' }, { status: 400 })
     }
+// ...
 
     // Clean phone number (strip non-digits, ensure +1)
     let cleanPhone = phone.replace(/\D/g, '')
