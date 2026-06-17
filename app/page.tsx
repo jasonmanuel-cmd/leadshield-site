@@ -1,6 +1,10 @@
+'use client'
+
 import Link from 'next/link'
+import { useState } from 'react'
 
 const FEATURES = [
+// ... rest of file (kept to show import change)
   {
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -124,9 +128,71 @@ const FAQS = [
   { q: 'What is the missed call text-back system?', a: 'It\'s a feature that automatically sends a custom SMS to anyone who calls your tracking number and you don\'t answer. Learn more on our Missed Call Text-Back page.' },
 ]
 
+function DemoForm() {
+  const [phone, setPhone] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setStatus('idle')
+    try {
+      const res = await fetch('/api/demo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      })
+      if (res.ok) setStatus('success')
+      else setStatus('error')
+    } catch (err) {
+      setStatus('error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <div className="relative">
+          <input
+            type="tel"
+            placeholder="Enter your phone number..."
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full px-5 py-4 rounded-xl text-lg transition-all outline-none"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: '#F5F7FA',
+            }}
+          />
+        </div>
+        <button
+          disabled={loading || status === 'success'}
+          className="w-full py-4 rounded-xl font-bold text-lg transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+          style={{
+            background: status === 'success' ? '#00FF88' : 'linear-gradient(135deg,#00E5FF,#0070FF)',
+            color: '#050814',
+            boxShadow: status === 'success' ? '0 0 30px rgba(0,255,136,0.3)' : '0 0 30px rgba(0,229,255,0.2)',
+          }}
+        >
+          {loading ? 'Sending...' : status === 'success' ? 'SMS Sent! Check your phone 📱' : 'Send Me a Test Auto-Reply →'}
+        </button>
+        {status === 'error' && (
+          <p className="text-xs font-medium text-red-400 mt-1">Something went wrong. Please try again.</p>
+        )}
+      </form>
+    </div>
+  )
+}
+
 export default function HomePage() {
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: '#050814', color: '#E8EAF0' }}>
+// ... rest of file (kept to show where to insert)
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 md:px-16 py-5 sticky top-0 z-50"
@@ -387,6 +453,32 @@ export default function HomePage() {
               </div>
             </details>
           ))}
+        </div>
+      </section>
+
+      {/* LIVE DEMO */}
+      <section className="px-6 md:px-16 py-20 max-w-5xl mx-auto text-center">
+        <div className="rounded-3xl p-10 md:p-16 relative overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[100px] pointer-events-none"
+            style={{ background: 'rgba(0,229,255,0.1)' }} />
+          
+          <div className="relative z-10">
+            <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#00FF88' }}>Live Demo</div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6" style={{ fontFamily: 'Space Grotesk, sans-serif', color: '#F5F7FA' }}>
+              Experience the Shield
+            </h2>
+            <p className="text-lg md:text-xl max-w-2xl mx-auto mb-10" style={{ color: '#A6AEC1' }}>
+              Enter your mobile number below and we&apos;ll send you the exact auto-reply 
+              your customers would get if you missed their call right now.
+            </p>
+
+            <DemoForm />
+
+            <p className="text-xs mt-6" style={{ color: '#8892A4' }}>
+              We&apos;ll only send one test message. No spam, ever.
+            </p>
+          </div>
         </div>
       </section>
 

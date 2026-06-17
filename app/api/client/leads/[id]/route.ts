@@ -9,9 +9,9 @@ async function getClient() {
   return createServerClient(url, anonKey, {
     cookies: {
       getAll() { return cookieStore.getAll() },
-      setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options as any))
-      },
+        setAll(cookiesToSet, _headers) {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
+        },
     },
   })
 }
@@ -21,7 +21,7 @@ function getAdmin() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!
   return createServerClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
-    cookies: { getAll() { return [] }, setAll() {} },
+    cookies: { getAll() { return [] }, setAll(_cookies, _headers) {} },
   })
 }
 
