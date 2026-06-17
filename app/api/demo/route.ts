@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
     if (cleanPhone.length === 10) cleanPhone = '1' + cleanPhone
     if (!cleanPhone.startsWith('+')) cleanPhone = '+' + cleanPhone
 
+    console.log('Sending demo SMS to:', cleanPhone, 'from:', demoFromNumber)
+
     const smsContent = "🛡️ LeadShield Demo: This is the exact text your customers would receive within seconds of missing your call. It keeps them on the hook while you're busy! Reply YES to start your free trial."
 
     const smsRes = await fetch('https://api.telnyx.com/v2/messages', {
@@ -35,9 +37,9 @@ export async function POST(req: NextRequest) {
     })
 
     if (!smsRes.ok) {
-      const error = await smsRes.json()
-      console.error('Telnyx Demo SMS failed:', error)
-      return NextResponse.json({ error: 'Failed to send demo SMS.' }, { status: 500 })
+      const errorJson = await smsRes.json()
+      console.error('Telnyx Demo SMS failed. Status:', smsRes.status, 'Error:', JSON.stringify(errorJson))
+      return NextResponse.json({ error: 'Failed to send demo SMS.', details: errorJson }, { status: 500 })
     }
 
     return NextResponse.json({ ok: true })
