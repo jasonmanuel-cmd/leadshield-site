@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 const FEATURES = [
-// ... rest of file (kept to show import change)
   {
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -192,7 +191,6 @@ function DemoForm() {
 export default function HomePage() {
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: '#050814', color: '#E8EAF0' }}>
-// ... rest of file (kept to show where to insert)
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 md:px-16 py-5 sticky top-0 z-50"
