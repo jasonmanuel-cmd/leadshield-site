@@ -45,7 +45,7 @@ const s: Record<string, React.CSSProperties> = {
   },
 }
 
-const TABS = ['Clients', 'Payments', 'Analytics'] as const
+const TABS = ['Clients', 'Payments', 'Analytics', 'System'] as const
 type Tab = typeof TABS[number]
 
 // ─── Types ─────────────────────────────────────────────────
@@ -74,9 +74,17 @@ interface AnalyticsData {
   topClients: Array<{ business_name: string; lead_count: number }>
   statusDistribution: Record<string, number>
 }
+interface SystemStatus {
+  github: { connected: boolean; repo: string }
+  supabase: { configured: boolean; healthy: boolean }
+  telnyx: { configured: boolean }
+  square: { configured: boolean; environment: string | null; missing: string[] }
+  admin: { usernameConfigured: boolean; passwordConfigured: boolean; tokenConfigured: boolean }
+}
 
 // ─── Password Gate ──────────────────────────────────────────
 function PasswordGate({ onSuccess }: { onSuccess: (token: string) => void }) {
+  const [username, setUsername] = useState('')
   const [pw, setPw] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -85,12 +93,15 @@ function PasswordGate({ onSuccess }: { onSuccess: (token: string) => void }) {
     if (!pw.trim()) return
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/admin/clients', {
-        headers: { Authorization: `Bearer ${pw}` },
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password: pw }),
       })
       if (res.status === 401) { setError('Wrong password'); setLoading(false); return }
       if (!res.ok) { setError('Server error'); setLoading(false); return }
-      onSuccess(pw)
+      const data = await res.json()
+      onSuccess(data.token)
     } catch { setError('Network error'); setLoading(false) }
   }
 
@@ -101,8 +112,11 @@ function PasswordGate({ onSuccess }: { onSuccess: (token: string) => void }) {
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🛡️</div>
           <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: C.gold }}>Admin Panel</h1>
-          <p style={{ margin: '6px 0 0', fontSize: '13px', color: C.muted }}>Enter admin password</p>
+          <p style={{ margin: '6px 0 0', fontSize: '13px', color: C.muted }}>Enter master username and password</p>
         </div>
+        <input type="text" placeholder="Master username" value={username}
+          onChange={(e) => setUsername(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+          style={{ ...s.input, borderColor: error ? C.red : C.border }} />
         <input type="password" placeholder="Admin password" value={pw}
           onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           style={{ ...s.input, borderColor: error ? C.red : C.border }} />
@@ -112,6 +126,32 @@ function PasswordGate({ onSuccess }: { onSuccess: (token: string) => void }) {
           {loading ? 'Checking…' : 'Enter'}
         </button>
       </div>
+    </div>
+  )
+}
+
+function ConnectionRow({ label, ok, detail }: { label: string; ok: boolean; detail: string }) {
+  return (
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      gap: '16px', padding: '14px 0', borderBottom: `1px solid ${C.border}`,
+    }}>
+      <div>
+        <div style={{ color: C.text, fontWeight: 700, fontSize: '14px' }}>{label}</div>
+        <div style={{ color: C.muted, fontSize: '12px', marginTop: '3px' }}>{detail}</div>
+      </div>
+      <span style={{
+        color: ok ? C.green : C.red,
+        background: ok ? 'rgba(0,255,136,0.1)' : 'rgba(255,107,107,0.1)',
+        border: `1px solid ${ok ? C.green : C.red}`,
+        borderRadius: '999px',
+        padding: '4px 10px',
+        fontSize: '11px',
+        fontWeight: 800,
+        textTransform: 'uppercase',
+      }}>
+        {ok ? 'Connected' : 'Needs setup'}
+      </span>
     </div>
   )
 }
@@ -618,6 +658,76 @@ function AnalyticsPanel({ token }: { token: string }) {
   )
 }
 
+function SystemPanel({ token }: { token: string }) {
+  const [data, setData] = useState<SystemStatus | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/system', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) setData(await res.json())
+      } catch { /* ignore */ }
+      setLoading(false)
+    })()
+  }, [token])
+
+  if (loading) return <p style={{ color: C.muted }}>Checking system connections…</p>
+  if (!data) return <p style={{ color: C.red }}>Failed to load system status.</p>
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+      <div style={s.panel}>
+        <h2 style={{ margin: '0 0 10px', fontSize: '20px', fontWeight: 800, color: C.text }}>System Connections</h2>
+        <p style={{ margin: '0 0 8px', color: C.muted, fontSize: '13px' }}>
+          This shows what the live LeadShield app can currently reach from production.
+        </p>
+        <ConnectionRow
+          label="GitHub"
+          ok={data.github.connected}
+          detail={data.github.repo}
+        />
+        <ConnectionRow
+          label="Supabase"
+          ok={data.supabase.configured && data.supabase.healthy}
+          detail={data.supabase.healthy ? 'Database credentials are configured and the clients table is reachable.' : 'Supabase env vars or database access need attention.'}
+        />
+        <ConnectionRow
+          label="Telnyx"
+          ok={data.telnyx.configured}
+          detail={data.telnyx.configured ? 'Missed-call SMS provider key is configured.' : 'TELNYX_API_KEY is missing.'}
+        />
+        <ConnectionRow
+          label="Square"
+          ok={data.square.configured}
+          detail={data.square.configured ? `Square ${data.square.environment || 'environment'} credentials are configured.` : `Missing ${data.square.missing.join(', ') || 'Square credentials'}.`}
+        />
+      </div>
+
+      <div style={s.panel}>
+        <h2 style={{ margin: '0 0 10px', fontSize: '20px', fontWeight: 800, color: C.text }}>Master Access</h2>
+        <ConnectionRow
+          label="Username"
+          ok={data.admin.usernameConfigured}
+          detail={data.admin.usernameConfigured ? 'MASTER_ADMIN_USERNAME is set.' : 'MASTER_ADMIN_USERNAME is missing.'}
+        />
+        <ConnectionRow
+          label="Password"
+          ok={data.admin.passwordConfigured}
+          detail={data.admin.passwordConfigured ? 'MASTER_ADMIN_PASSWORD is set.' : 'MASTER_ADMIN_PASSWORD is missing.'}
+        />
+        <ConnectionRow
+          label="API Token"
+          ok={data.admin.tokenConfigured}
+          detail={data.admin.tokenConfigured ? 'MASTER_ADMIN_TOKEN is set for protected admin API calls.' : 'MASTER_ADMIN_TOKEN is missing.'}
+        />
+      </div>
+    </div>
+  )
+}
+
 // ─── Main Admin Page ────────────────────────────────────────
 export default function AdminPage() {
   const [token, setToken] = useState<string | null>(null)
@@ -657,6 +767,7 @@ export default function AdminPage() {
         {activeTab === 'Clients' && <ClientsPanel token={token} />}
         {activeTab === 'Payments' && <PaymentsPanel token={token} />}
         {activeTab === 'Analytics' && <AnalyticsPanel token={token} />}
+        {activeTab === 'System' && <SystemPanel token={token} />}
 
       </div>
     </div>
