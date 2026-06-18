@@ -391,6 +391,7 @@ function PaymentsPanel({ token }: { token: string }) {
   const [dueDate, setDueDate] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [squareLoading, setSquareLoading] = useState<string | null>(null)
 
   const fetchPayments = useCallback(async () => {
     const res = await fetch('/api/admin/payments', {
@@ -434,6 +435,28 @@ function PaymentsPanel({ token }: { token: string }) {
       body: JSON.stringify({ id, status: 'paid' }),
     })
     await fetchPayments()
+  }
+
+  const getSquareUrl = (payment: PaymentRecord) => {
+    const match = payment.notes?.match(/Square checkout:\s*(https?:\/\/\S+)/i)
+    return match?.[1] ?? null
+  }
+
+  const createSquareLink = async (payment: PaymentRecord) => {
+    setSquareLoading(payment.id)
+    const res = await fetch('/api/admin/square/payment-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ payment_id: payment.id }),
+    })
+    const data = await res.json()
+    setSquareLoading(null)
+    if (!res.ok) {
+      alert(data.error || 'Square payment link failed')
+      return
+    }
+    await fetchPayments()
+    if (data.payment_link?.url) window.open(data.payment_link.url, '_blank', 'noopener,noreferrer')
   }
 
   const totalOutstanding = payments.filter(p => p.status === 'unpaid').reduce((s, p) => s + Number(p.amount), 0)
@@ -498,37 +521,55 @@ function PaymentsPanel({ token }: { token: string }) {
             </thead>
             <tbody>
               {payments.map(p => (
-                <tr key={p.id} style={{ borderBottom: `1px solid ${C.border}`, opacity: p.status === 'paid' ? 0.6 : 1 }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <td style={{ padding: '14px 12px', fontWeight: 600 }}>{p.clients?.business_name || '—'}</td>
-                  <td style={{ padding: '14px 12px', textAlign: 'right', color: C.gold, fontWeight: 700 }}>${Number(p.amount).toFixed(2)}</td>
-                  <td style={{ padding: '14px 12px', textAlign: 'center' }}>
-                    <span style={{
-                      display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
-                      background: p.status === 'paid' ? 'rgba(0,255,136,0.1)' :
-                                  p.status === 'overdue' ? 'rgba(255,107,107,0.1)' : 'rgba(255,215,0,0.1)',
-                      color: p.status === 'paid' ? C.green : p.status === 'overdue' ? C.red : C.gold,
-                    }}>{p.status}</span>
-                  </td>
-                  <td style={{ padding: '14px 12px', textAlign: 'center', color: C.muted, fontSize: '12px' }}>
-                    {new Date(p.due_date).toLocaleDateString()}
-                  </td>
-                  <td style={{ padding: '14px 12px', textAlign: 'center', color: C.muted, fontSize: '12px' }}>
-                    {new Date(p.period_start).toLocaleDateString()} – {new Date(p.period_end).toLocaleDateString()}
-                  </td>
-                  <td style={{ padding: '14px 12px', textAlign: 'center', color: C.muted, fontSize: '12px' }}>
-                    {p.paid_at ? new Date(p.paid_at).toLocaleDateString() : '—'}
-                  </td>
-                  <td style={{ padding: '14px 12px', textAlign: 'right' }}>
-                    {p.status !== 'paid' && (
-                      <button onClick={() => markPaid(p.id)}
-                        style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: 'rgba(0,255,136,0.1)', border: `1px solid ${C.green}`, color: C.green }}>
-                        Mark Paid
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                (() => {
+                  const squareUrl = getSquareUrl(p)
+                  return (
+                    <tr key={p.id} style={{ borderBottom: `1px solid ${C.border}`, opacity: p.status === 'paid' ? 0.6 : 1 }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{ padding: '14px 12px', fontWeight: 600 }}>{p.clients?.business_name || '—'}</td>
+                      <td style={{ padding: '14px 12px', textAlign: 'right', color: C.gold, fontWeight: 700 }}>${Number(p.amount).toFixed(2)}</td>
+                      <td style={{ padding: '14px 12px', textAlign: 'center' }}>
+                        <span style={{
+                          display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
+                          background: p.status === 'paid' ? 'rgba(0,255,136,0.1)' :
+                                      p.status === 'overdue' ? 'rgba(255,107,107,0.1)' : 'rgba(255,215,0,0.1)',
+                          color: p.status === 'paid' ? C.green : p.status === 'overdue' ? C.red : C.gold,
+                        }}>{p.status}</span>
+                      </td>
+                      <td style={{ padding: '14px 12px', textAlign: 'center', color: C.muted, fontSize: '12px' }}>
+                        {new Date(p.due_date).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '14px 12px', textAlign: 'center', color: C.muted, fontSize: '12px' }}>
+                        {new Date(p.period_start).toLocaleDateString()} – {new Date(p.period_end).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '14px 12px', textAlign: 'center', color: C.muted, fontSize: '12px' }}>
+                        {p.paid_at ? new Date(p.paid_at).toLocaleDateString() : '—'}
+                      </td>
+                      <td style={{ padding: '14px 12px', textAlign: 'right' }}>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                          {squareUrl ? (
+                            <a href={squareUrl} target="_blank" rel="noreferrer"
+                              style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', background: 'rgba(0,229,255,0.1)', border: `1px solid ${C.cyan}`, color: C.cyan, textDecoration: 'none' }}>
+                              Open Square
+                            </a>
+                          ) : p.status !== 'paid' && (
+                            <button onClick={() => createSquareLink(p)} disabled={squareLoading === p.id}
+                              style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', cursor: squareLoading === p.id ? 'not-allowed' : 'pointer', background: 'rgba(0,229,255,0.1)', border: `1px solid ${C.cyan}`, color: C.cyan }}>
+                              {squareLoading === p.id ? 'Creating…' : 'Square Link'}
+                            </button>
+                          )}
+                          {p.status !== 'paid' && (
+                            <button onClick={() => markPaid(p.id)}
+                              style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: 'rgba(0,255,136,0.1)', border: `1px solid ${C.green}`, color: C.green }}>
+                              Mark Paid
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })()
               ))}
             </tbody>
           </table>

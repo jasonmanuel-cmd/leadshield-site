@@ -66,3 +66,47 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ payment: data }, { status: 201 })
 }
+
+export async function PATCH(req: NextRequest) {
+  if (!checkAdminAuth(req.headers.get('authorization'))) return unauthorized()
+
+  const supabase = getAdmin()
+  if (!supabase) {
+    return NextResponse.json({ error: 'Not configured' }, { status: 500 })
+  }
+
+  let body: Record<string, unknown>
+  try { body = await req.json() } catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
+
+  const id = typeof body.id === 'string' ? body.id : ''
+  const status = typeof body.status === 'string' ? body.status : undefined
+  const paymentMethod = typeof body.payment_method === 'string' ? body.payment_method : undefined
+  const notes = typeof body.notes === 'string' ? body.notes : undefined
+
+  if (!id) {
+    return NextResponse.json({ error: 'id required' }, { status: 400 })
+  }
+
+  const updates: Record<string, unknown> = {}
+  if (status) {
+    updates.status = status
+    if (status === 'paid') updates.paid_at = new Date().toISOString()
+  }
+  if (paymentMethod) updates.payment_method = paymentMethod
+  if (notes !== undefined) updates.notes = notes
+
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
+  }
+
+  const { error } = await supabase
+    .from('client_payments')
+    .update(updates)
+    .eq('id', id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true })
+}

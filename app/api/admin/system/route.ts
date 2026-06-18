@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth, getAdmin } from '@/lib/supabase-admin'
+import { isSquareConfigured } from '@/lib/square'
 
 function unauthorized() {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -21,10 +22,7 @@ export async function GET(req: NextRequest) {
     supabaseHealthy = !error
   }
 
-  const squareConfigured = !!(
-    process.env.SQUARE_ACCESS_TOKEN &&
-    process.env.SQUARE_LOCATION_ID
-  )
+  const squareConfigured = isSquareConfigured()
 
   return NextResponse.json({
     github: {
