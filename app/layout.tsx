@@ -4,22 +4,25 @@ import SplashScreen from '@/components/SplashScreen'
 import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
-  title: 'LeadShield — Cloud CRM for Contractors',
-  description: 'LeadShield is a web-based CRM with missed-call text-back for contractors. Track every lead, manage your pipeline, and never lose a job.',
+  title: 'LeadShield — Turn Missed Calls Into Booked Jobs',
+  description: 'LeadShield helps contractors protect paid leads with instant missed-call text-back, pipeline tracking, and commercial credential packets.',
   metadataBase: new URL('https://leadshield.live'),
+  icons: {
+    icon: '/leadshield-mark.svg',
+  },
   openGraph: {
-    title: 'LeadShield — Cloud CRM for Contractors',
-    description: 'Cloud CRM with missed-call auto-reply. Track leads, manage pipeline, and capture every job.',
+    title: 'LeadShield — Turn Missed Calls Into Booked Jobs',
+    description: 'Instant missed-call text-back, contractor CRM, and commercial credential packets for local service businesses.',
     url: 'https://leadshield.live',
     siteName: 'LeadShield',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LeadShield — Cloud CRM for Contractors',
-    description: 'Cloud CRM with missed-call auto-reply. Track leads, manage pipeline, and capture every job.',
+    title: 'LeadShield — Turn Missed Calls Into Booked Jobs',
+    description: 'Protect paid leads before they call your competitor.',
   },
-  keywords: ['contractor CRM', 'missed call text back', 'lead management', 'pipeline tracking', 'cloud CRM', 'LeadShield', 'small business CRM'],
+  keywords: ['contractor CRM', 'missed call text back', 'lead management', 'pipeline tracking', 'commercial credential packets', 'LeadShield', 'small business CRM'],
 }
 
 export const viewport = {

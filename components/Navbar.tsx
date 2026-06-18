@@ -17,6 +17,7 @@ export default function Navbar() {
 
   const navItems = [
     { href: '/crm',  label: 'CRM',    icon: DashboardIcon },
+    { href: '/crm/credentials', label: 'Credentials', icon: CredentialsIcon },
     { href: '/crm/settings', label: 'Settings', icon: SettingsIcon },
   ]
 
@@ -35,20 +36,23 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
-              style={{
-                color: pathname.startsWith(item.href) ? '#00E5FF' : '#8892A4',
-                background: pathname.startsWith(item.href) ? 'rgba(0,229,255,0.1)' : 'transparent',
-              }}
-            >
-              <item.icon active={pathname.startsWith(item.href)} />
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const active = item.href === '/crm' ? pathname === '/crm' : pathname.startsWith(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
+                style={{
+                  color: active ? '#00E5FF' : '#8892A4',
+                  background: active ? 'rgba(0,229,255,0.1)' : 'transparent',
+                }}
+              >
+                <item.icon active={active} />
+                {item.label}
+              </Link>
+            )
+          })}
         </div>
 
         <div className="flex items-center gap-2">
@@ -96,7 +100,7 @@ export default function Navbar() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around px-2 py-2"
         style={{ background: 'rgba(7,10,18,0.82)' }}>
         {navItems.map((item) => {
-          const active = pathname.startsWith(item.href)
+          const active = item.href === '/crm' ? pathname === '/crm' : pathname.startsWith(item.href)
           return (
             <Link
               key={item.href}
@@ -137,6 +141,18 @@ function SettingsIcon({ active }: { active: boolean }) {
       strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  )
+}
+
+function CredentialsIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke={active ? '#00E5FF' : 'currentColor'}
+      strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+      <path d="M14 2v5h5" />
+      <path d="M9 14l2 2 4-5" />
     </svg>
   )
 }

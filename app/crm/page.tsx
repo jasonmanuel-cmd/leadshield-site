@@ -157,6 +157,40 @@ export default function CrmDashboard() {
           </a>
         </div>
 
+        <div style={{
+          ...PANEL,
+          marginBottom: '20px',
+          borderColor: 'rgba(255,215,0,0.2)',
+          background: 'linear-gradient(135deg, rgba(255,215,0,0.06), rgba(0,229,255,0.04))',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ margin: '0 0 6px', color: C.gold, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 800 }}>
+                New revenue tool
+              </p>
+              <h2 style={{ margin: '0 0 6px', color: C.text, fontSize: '18px', fontWeight: 700 }}>
+                Build commercial vendor packets before paperwork stalls the job.
+              </h2>
+              <p style={{ margin: 0, color: C.muted, fontSize: '13px', lineHeight: 1.5, maxWidth: '720px' }}>
+                Track insurance, W-9, license, bond, and safety documents, then export a buyer-ready packet from LeadShield Credentials.
+              </p>
+            </div>
+            <a href="/crm/credentials"
+              style={{
+                background: 'linear-gradient(135deg,#FFD700,#00E5FF)',
+                color: '#050814',
+                textDecoration: 'none',
+                borderRadius: '12px',
+                padding: '11px 16px',
+                fontSize: '13px',
+                fontWeight: 800,
+                whiteSpace: 'nowrap',
+              }}>
+              Open Credentials →
+            </a>
+          </div>
+        </div>
+
         {/* ─── Welcome Card ─── */}
         {!dismissWelcome && (
           <div style={{
