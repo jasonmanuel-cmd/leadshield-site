@@ -1,37 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+function normalizeUsPhone(phone: string) {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10) return `+1${digits}`
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`
+  return null
+}
+
+async function getDemoFromNumber() {
+  if (process.env.TELNYX_DEMO_FROM_NUMBER) return process.env.TELNYX_DEMO_FROM_NUMBER
+  if (!supabaseUrl || !supabaseKey) return '+16615935773'
+
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+
+  const { data, error } = await supabase
+    .from('telephony_config')
+    .select('provisioned_phone_number')
+    .eq('is_active', true)
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    console.error('Demo sender lookup failed:', error.message)
+  }
+
+  return data?.provisioned_phone_number || '+16615935773'
+}
 
 export async function POST(req: NextRequest) {
   const telnyxKey = process.env.TELNYX_API_KEY
-  const demoFromNumber = "+16615935773" // Our live tracking number
-
-  console.log('--- Demo API Request ---')
-  console.log('Telnyx Key Present:', !!telnyxKey)
-  if (telnyxKey) {
-    console.log('Telnyx Key Starts With:', telnyxKey.substring(0, 7) + '...')
-  }
 
   if (!telnyxKey) {
-    return NextResponse.json({ error: 'SMS service not configured.' }, { status: 500 })
+    console.error('Demo SMS is not configured: TELNYX_API_KEY is missing.')
+    return NextResponse.json(
+      { error: 'The text demo is temporarily unavailable. Please call or message us directly.' },
+      { status: 503 },
+    )
   }
 
   try {
     const body = await req.json()
     const { phone } = body
-    console.log('Request body:', JSON.stringify(body))
 
-    if (!phone) {
-      return NextResponse.json({ error: 'Phone number is required.' }, { status: 400 })
+    if (typeof phone !== 'string' || !phone.trim()) {
+      return NextResponse.json({ error: 'Enter a valid phone number.' }, { status: 400 })
     }
-// ...
 
-    // Clean phone number (strip non-digits, ensure +1)
-    let cleanPhone = phone.replace(/\D/g, '')
-    if (cleanPhone.length === 10) cleanPhone = '1' + cleanPhone
-    if (!cleanPhone.startsWith('+')) cleanPhone = '+' + cleanPhone
+    const cleanPhone = normalizeUsPhone(phone)
+    if (!cleanPhone) {
+      return NextResponse.json({ error: 'Enter a 10-digit US phone number.' }, { status: 400 })
+    }
 
-    console.log('Sending demo SMS to:', cleanPhone, 'from:', demoFromNumber)
-
-    const smsContent = "🛡️ LeadShield Demo: This is the exact text your customers would receive within seconds of missing your call. It keeps them on the hook while you're busy! Reply YES to start your free trial."
+    const demoFromNumber = await getDemoFromNumber()
+    const smsContent = "LeadShield Demo: This is the text your customers would receive within seconds of a missed call. It keeps the lead warm while you're on the job. Reply YES to learn more."
 
     const smsRes = await fetch('https://api.telnyx.com/v2/messages', {
       method: 'POST',
@@ -47,14 +74,25 @@ export async function POST(req: NextRequest) {
     })
 
     if (!smsRes.ok) {
-      const errorJson = await smsRes.json()
-      console.error('Telnyx Demo SMS failed. Status:', smsRes.status, 'Error:', JSON.stringify(errorJson))
-      return NextResponse.json({ error: 'Failed to send demo SMS.', details: errorJson }, { status: 500 })
+      const errorText = await smsRes.text()
+      console.error('Telnyx demo SMS failed.', {
+        status: smsRes.status,
+        from: demoFromNumber,
+        toSuffix: cleanPhone.slice(-4),
+        error: errorText,
+      })
+      return NextResponse.json(
+        { error: 'The text demo could not send to that number. Please try a mobile number or contact us directly.' },
+        { status: 502 },
+      )
     }
 
     return NextResponse.json({ ok: true })
   } catch (err) {
     console.error('Demo API error:', err)
-    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'The text demo is temporarily unavailable. Please try again in a few minutes.' },
+      { status: 500 },
+    )
   }
 }

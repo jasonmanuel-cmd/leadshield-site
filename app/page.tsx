@@ -104,19 +104,28 @@ function DemoForm() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setStatus('idle')
+    setMessage('')
     try {
       const res = await fetch('/api/demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone }),
       })
-      setStatus(res.ok ? 'success' : 'error')
+      const data = await res.json().catch(() => null)
+      if (res.ok) {
+        setStatus('success')
+      } else {
+        setMessage(data?.error || 'The text demo is temporarily unavailable. Please try again.')
+        setStatus('error')
+      }
     } catch {
+      setMessage('The text demo is temporarily unavailable. Please try again.')
       setStatus('error')
     } finally {
       setLoading(false)
@@ -141,7 +150,7 @@ function DemoForm() {
       >
         {loading ? 'Sending test message...' : status === 'success' ? 'SMS sent. Check your phone.' : 'Send me the missed-call text'}
       </button>
-      {status === 'error' && <p className="text-sm font-semibold text-red-300">Something went wrong. Try again.</p>}
+      {status === 'error' && <p className="text-sm font-semibold text-red-300">{message}</p>}
     </form>
   )
 }
