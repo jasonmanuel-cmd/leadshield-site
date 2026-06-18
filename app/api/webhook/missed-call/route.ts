@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     const smsContent = !template
       ? "Hey! Sorry we missed your call. We'll get back to you shortly."
       : template.sms_body
+    const notes = `Source: ${source}\nTracking number: ${trackingNumber}\nAuto-reply: ${smsContent}`
 
     // Send SMS via Telnyx API (if configured)
     const telnyxKey = process.env.TELNYX_API_KEY
@@ -93,6 +94,7 @@ export async function POST(req: NextRequest) {
         call_status: 'no-answer',
         sms_sent_status: smsRes.ok ? 'sent' : 'failed',
         status: 'new',
+        notes,
         timestamp: new Date().toISOString(),
       })
       if (!smsRes.ok) {
@@ -106,6 +108,7 @@ export async function POST(req: NextRequest) {
         call_status: 'no-answer',
         sms_sent_status: 'dispatched',
         status: 'new',
+        notes,
         timestamp: new Date().toISOString(),
       })
     }

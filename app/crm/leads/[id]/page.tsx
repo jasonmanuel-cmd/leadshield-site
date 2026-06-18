@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient, LeadLog } from '@/lib/supabase'
 import { formatPhone, timeAgo } from '@/lib/utils'
+import { callbackAgeMinutes, getScoreMeta, isCallbackOverdue, scoreLead } from '@/lib/lead-insights'
 import Navbar from '@/components/Navbar'
 
 const COLORS = {
@@ -40,7 +41,9 @@ export default function LeadDetailPage() {
   const [contactName, setContactName] = useState('')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const [savingNotes, setSavingNotes] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [notesSaved, setNotesSaved] = useState(false)
 
   const fetchLead = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -80,6 +83,20 @@ export default function LeadDetailPage() {
     setSaving(false)
   }
 
+  const updateNotes = async () => {
+    if (!lead) return
+    setSavingNotes(true)
+    await fetch('/api/client/leads', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: lead.id, notes }),
+    })
+    setNotesSaved(true)
+    setTimeout(() => setNotesSaved(false), 2500)
+    setSavingNotes(false)
+    await fetchLead()
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.bg }}>
@@ -91,6 +108,8 @@ export default function LeadDetailPage() {
   if (!lead) return null
 
   const statusMeta = STATUS_META[lead.status ?? 'new'] ?? STATUS_META.new
+  const scoreMeta = getScoreMeta(scoreLead(lead))
+  const overdue = isCallbackOverdue(lead)
 
   return (
     <div className="min-h-screen" style={{ background: COLORS.bg }}>
@@ -111,8 +130,22 @@ export default function LeadDetailPage() {
             <span style={{ color: COLORS.muted, fontSize: '13px' }}>
               {formatPhone(lead.customer_phone)} · {timeAgo(lead.timestamp)}
             </span>
+            <span style={{
+              display: 'inline-block', padding: '3px 10px', borderRadius: '20px',
+              fontSize: '12px', fontWeight: 700, background: `${scoreMeta.color}20`,
+              color: scoreMeta.color, border: `1px solid ${scoreMeta.color}40`,
+            }}>{scoreMeta.label}</span>
           </div>
         </div>
+
+        {overdue && (
+          <div style={{ ...PANEL, marginBottom: '16px', borderColor: 'rgba(255,107,107,0.35)', background: 'rgba(255,107,107,0.06)' }}>
+            <h2 style={{ margin: '0 0 6px', fontSize: '14px', fontWeight: 700, color: '#FF6B6B' }}>Callback overdue</h2>
+            <p style={{ margin: 0, color: COLORS.text, fontSize: '13px' }}>
+              This lead has been waiting about {callbackAgeMinutes(lead)} minutes. Move it to Called Back when you reach them.
+            </p>
+          </div>
+        )}
 
         <div style={{ ...PANEL, marginBottom: '16px' }}>
           <h2 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 600, color: COLORS.cyan }}>Status</h2>
@@ -162,6 +195,14 @@ export default function LeadDetailPage() {
         <div style={{ ...PANEL }}>
           <h2 style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 600, color: COLORS.cyan }}>Notes</h2>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Add notes…" style={{ ...INPUT, minHeight: '80px', resize: 'vertical' }} />
+          <button onClick={updateNotes} disabled={savingNotes}
+            style={{
+              marginTop: '8px', padding: '8px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+              border: 'none', cursor: savingNotes ? 'not-allowed' : 'pointer',
+              background: savingNotes ? 'rgba(0,229,255,0.2)' : COLORS.cyan, color: '#050814',
+            }}>
+            {savingNotes ? 'Saving…' : notesSaved ? 'Saved ✓' : 'Save Notes'}
+          </button>
         </div>
       </main>
     </div>

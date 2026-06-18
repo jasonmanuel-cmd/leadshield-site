@@ -69,7 +69,8 @@ export async function PATCH(req: NextRequest) {
 
   if (id && status) {
     const now = new Date().toISOString()
-    const updates: Record<string, unknown> = { status, notes: notes ?? null, updated_at: now }
+    const updates: Record<string, unknown> = { status, updated_at: now }
+    if (notes !== undefined) updates.notes = notes
     if (status === 'called_back') updates.called_back_at = now
 
     const { error } = await getAdmin()
@@ -82,7 +83,18 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  if (id && contact_name) {
+  if (id && notes !== undefined) {
+    const { error } = await getAdmin()
+      .from('lead_logs')
+      .update({ notes, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('client_id', user.id)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ ok: true })
+  }
+
+  if (id && contact_name !== undefined) {
     const { error } = await getAdmin()
       .from('lead_logs')
       .update({ contact_name, updated_at: new Date().toISOString() })

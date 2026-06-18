@@ -3,13 +3,21 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient, LeadLog } from '@/lib/supabase'
-import { formatPhone, timeAgo, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { formatPhone, timeAgo } from '@/lib/utils'
+import {
+  callbackAgeMinutes,
+  getMissedCallStats,
+  getScoreMeta,
+  isCallbackOverdue,
+  isMissedCall,
+  scoreLead,
+} from '@/lib/lead-insights'
 import Navbar from '@/components/Navbar'
 
 const C = {
   bg: '#050814', cyan: '#00E5FF', gold: '#FFD700',
   green: '#00FF88', purple: '#A855F7', text: '#E2E8F0',
-  muted: '#94A3B8', panel: 'rgba(255,255,255,0.03)',
+  muted: '#94A3B8', red: '#FF6B6B', panel: 'rgba(255,255,255,0.03)',
   border: 'rgba(255,255,255,0.08)',
 }
 
@@ -33,6 +41,20 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
       <span style={{ fontSize: '11px', color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
       <span style={{ fontSize: '32px', fontWeight: 700, color: accent, lineHeight: 1 }}>{value}</span>
     </div>
+  )
+}
+
+function ScoreBadge({ lead }: { lead: LeadLog }) {
+  const meta = getScoreMeta(scoreLead(lead))
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', padding: '3px 9px',
+      borderRadius: '999px', fontSize: '10px', fontWeight: 800,
+      color: meta.color, background: `${meta.color}18`,
+      border: `1px solid ${meta.color}35`, textTransform: 'uppercase',
+    }}>
+      {meta.label}
+    </span>
   )
 }
 
@@ -101,6 +123,9 @@ export default function CrmDashboard() {
   const todayLeads = leads.filter(l =>
     new Date(l.timestamp).toDateString() === new Date().toDateString()
   ).length
+  const stats = getMissedCallStats(leads)
+  const overdueLeads = leads.filter((lead) => isCallbackOverdue(lead))
+  const recentMissedCalls = leads.filter(isMissedCall).slice(0, 5)
 
   const statusCounts: Record<string, number> = {}
   for (const l of leads) {
@@ -221,13 +246,59 @@ export default function CrmDashboard() {
 
         {/* ─── Stats ─── */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
-          <StatCard label="Total Leads" value={leads.length} accent={C.cyan} />
-          <StatCard label="Today" value={todayLeads} accent={C.green} />
-          <StatCard label="Booked" value={statusCounts['booked'] ?? 0} accent={C.gold} />
-          <StatCard label="New" value={statusCounts['new'] ?? 0} accent={C.cyan} />
-          <StatCard label="Called Back" value={statusCounts['called_back'] ?? 0} accent="#3B82F6" />
-          <StatCard label="Quoted" value={statusCounts['quoted'] ?? 0} accent={C.gold} />
+          <StatCard label="Missed Calls" value={stats.missedCalls} accent={C.cyan} />
+          <StatCard label="Captured Today" value={todayLeads} accent={C.green} />
+          <StatCard label="Needs Callback" value={stats.openLeads} accent={C.gold} />
+          <StatCard label="Overdue" value={stats.overdueLeads} accent={C.red} />
+          <StatCard label="Hot Leads" value={stats.hotLeads} accent={C.red} />
+          <StatCard label="Booked" value={statusCounts['booked'] ?? 0} accent={C.green} />
         </div>
+
+        {(overdueLeads.length > 0 || stats.failedSms > 0) && (
+          <div style={{
+            ...PANEL, marginBottom: '20px',
+            borderColor: overdueLeads.length > 0 ? 'rgba(255,107,107,0.35)' : 'rgba(255,215,0,0.3)',
+            background: overdueLeads.length > 0 ? 'rgba(255,107,107,0.06)' : 'rgba(255,215,0,0.05)',
+          }}>
+            <h2 style={{ margin: '0 0 8px', color: overdueLeads.length > 0 ? C.red : C.gold, fontSize: '16px', fontWeight: 800 }}>
+              Action needed
+            </h2>
+            <p style={{ margin: 0, color: C.text, fontSize: '13px', lineHeight: 1.5 }}>
+              {overdueLeads.length > 0
+                ? `${overdueLeads.length} lead${overdueLeads.length === 1 ? '' : 's'} have waited over an hour without a callback.`
+                : `${stats.failedSms} auto-reply text${stats.failedSms === 1 ? '' : 's'} failed and should be checked.`}
+            </p>
+          </div>
+        )}
+
+        {recentMissedCalls.length > 0 && (
+          <div style={{ ...PANEL, marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+              <h2 style={{ fontSize: '16px', fontWeight: 700, color: C.text, margin: 0 }}>Missed Call Capture</h2>
+              <span style={{ color: C.muted, fontSize: '12px' }}>{stats.captureRate}% auto-reply coverage</span>
+            </div>
+            <div style={{ display: 'grid', gap: '8px' }}>
+              {recentMissedCalls.map((lead) => (
+                <a key={lead.id} href={`/crm/leads/${lead.id}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: '12px', padding: '10px 12px', borderRadius: '12px',
+                    background: 'rgba(255,255,255,0.03)', textDecoration: 'none',
+                  }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ color: C.text, fontSize: '13px', fontWeight: 700 }}>
+                      {lead.contact_name || formatPhone(lead.customer_phone)}
+                    </div>
+                    <div style={{ color: C.muted, fontSize: '12px', marginTop: '2px' }}>
+                      {timeAgo(lead.timestamp)} · SMS {lead.sms_sent_status}
+                    </div>
+                  </div>
+                  <ScoreBadge lead={lead} />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ─── Leads ─── */}
         <h2 style={{ fontSize: '16px', fontWeight: 600, color: C.text, marginBottom: '12px' }}>Leads</h2>
@@ -281,6 +352,12 @@ export default function CrmDashboard() {
                         <span>{formatPhone(lead.customer_phone)}</span>
                         <span>·</span>
                         <span>{timeAgo(lead.timestamp)}</span>
+                        {isCallbackOverdue(lead) && (
+                          <>
+                            <span>·</span>
+                            <span style={{ color: C.red }}>Overdue {callbackAgeMinutes(lead)}m</span>
+                          </>
+                        )}
                         {lead.sms_sent_status !== 'dispatched' && (
                           <>
                             <span>·</span>
@@ -301,6 +378,7 @@ export default function CrmDashboard() {
                     }}>
                       {statusMeta.label}
                     </div>
+                    <ScoreBadge lead={lead} />
                   </div>
 
                   {/* Status buttons */}
