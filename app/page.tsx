@@ -119,6 +119,7 @@ function DemoForm() {
       })
       const data = await res.json().catch(() => null)
       if (res.ok) {
+        setMessage(data?.message || 'SMS sent. Check your phone.')
         setStatus('success')
       } else {
         setMessage(data?.error || 'The text demo is temporarily unavailable. Please try again.')
@@ -148,8 +149,9 @@ function DemoForm() {
         className="rounded-xl px-5 py-4 text-base font-black disabled:opacity-60"
         style={{ background: status === 'success' ? C.green : `linear-gradient(135deg,${C.cyan},${C.blue})`, color: C.bg }}
       >
-        {loading ? 'Sending test message...' : status === 'success' ? 'SMS sent. Check your phone.' : 'Send me the missed-call text'}
+        {loading ? 'Sending test message...' : status === 'success' ? 'Demo ready' : 'Send me the missed-call text'}
       </button>
+      {status === 'success' && <p className="text-sm font-semibold" style={{ color: C.green }}>{message}</p>}
       {status === 'error' && <p className="text-sm font-semibold text-red-300">{message}</p>}
     </form>
   )

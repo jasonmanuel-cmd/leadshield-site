@@ -85,6 +85,16 @@ export async function POST(req: NextRequest) {
         toSuffix: cleanPhone.slice(-4),
         error: errorText,
       })
+
+      if (smsRes.status === 401) {
+        return NextResponse.json({
+          ok: true,
+          previewOnly: true,
+          message: 'Demo preview ready. The live SMS provider needs a fresh Telnyx key before it can send texts.',
+          smsPreview: smsContent,
+        })
+      }
+
       return NextResponse.json(
         { error: 'The text demo could not send to that number. Please try a mobile number or contact us directly.' },
         { status: 502 },
