@@ -79,14 +79,11 @@ export async function POST(req: NextRequest) {
 
     if (!smsRes.ok) {
       const errorText = await smsRes.text()
-      console.error('Telnyx demo SMS failed.', {
-        status: smsRes.status,
-        from: demoFromNumber,
-        toSuffix: cleanPhone.slice(-4),
-        error: errorText,
-      })
-
       if (smsRes.status === 401) {
+        console.warn('Telnyx demo SMS auth fallback.', {
+          from: demoFromNumber,
+          toSuffix: cleanPhone.slice(-4),
+        })
         return NextResponse.json({
           ok: true,
           previewOnly: true,
@@ -94,6 +91,13 @@ export async function POST(req: NextRequest) {
           smsPreview: smsContent,
         })
       }
+
+      console.error('Telnyx demo SMS failed.', {
+        status: smsRes.status,
+        from: demoFromNumber,
+        toSuffix: cleanPhone.slice(-4),
+        error: errorText,
+      })
 
       return NextResponse.json(
         { error: 'The text demo could not send to that number. Please try a mobile number or contact us directly.' },
