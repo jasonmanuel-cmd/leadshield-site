@@ -4,6 +4,10 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+function cleanHeaderValue(value: string) {
+  return value.replace(/[^\x20-\x7E]/g, '').trim()
+}
+
 function normalizeUsPhone(phone: string) {
   const digits = phone.replace(/\D/g, '')
   if (digits.length === 10) return `+1${digits}`
@@ -34,7 +38,7 @@ async function getDemoFromNumber() {
 }
 
 export async function POST(req: NextRequest) {
-  const telnyxKey = process.env.TELNYX_API_KEY
+  const telnyxKey = process.env.TELNYX_API_KEY ? cleanHeaderValue(process.env.TELNYX_API_KEY) : ''
 
   if (!telnyxKey) {
     console.error('Demo SMS is not configured: TELNYX_API_KEY is missing.')

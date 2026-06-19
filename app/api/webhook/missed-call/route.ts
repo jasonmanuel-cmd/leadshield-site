@@ -4,6 +4,10 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
+function cleanHeaderValue(value: string) {
+  return value.replace(/[^\x20-\x7E]/g, '').trim()
+}
+
 function getSupabase() {
   if (!supabaseUrl || !supabaseKey) return null
   return createClient(supabaseUrl, supabaseKey, {
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
       : template.sms_body
 
     // Send SMS via Telnyx API (if configured)
-    const telnyxKey = process.env.TELNYX_API_KEY
+    const telnyxKey = process.env.TELNYX_API_KEY ? cleanHeaderValue(process.env.TELNYX_API_KEY) : ''
     if (telnyxKey) {
       const smsRes = await fetch('https://api.telnyx.com/v2/messages', {
         method: 'POST',
